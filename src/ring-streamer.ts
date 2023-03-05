@@ -53,11 +53,11 @@ async function main() {
     return
   }
 
-  var desired_cameras = process.env.USE_CAMERAS!.split(',')
+  var desired_cameras = (process.env.USE_CAMERAS||'').split(',')
 
   for (var camera of cameras) {
     if (desired_cameras.indexOf(camera.name) < 0) {
-      console.log(`Skipping camers ${camera.name}...`)
+      console.log(`Skipping camera ${camera.name}...`)
       continue
     }
 
