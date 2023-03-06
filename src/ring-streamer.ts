@@ -1,6 +1,7 @@
-import 'dotenv/config'
 import { RingApi, RingCamera } from 'ring-client-api'
-import { readFileSync, writeFileSync } from 'fs' // To support rewrite of token
+import Conf from 'conf'
+
+const config = new Conf({projectName: 'ring-server'})
 
 // TODO:  Put some proper log levels into place to reduce console verbosity.
 
@@ -26,34 +27,23 @@ async function startCamera(camera: RingCamera) {
   })
 }
 
-async function main() {
+export async function stream(desired_cameras: string[]) {
   const ringApi = new RingApi({
       // Replace with your refresh token
-      refreshToken: process.env.RING_REFRESH_TOKEN!,
+      refreshToken: config.get('token') as string,
       debug: true,
     }),
     cameras = await ringApi.getCameras()
 
   // Refresh token periodically
   ringApi.onRefreshTokenUpdated.subscribe(
-    async ({ newRefreshToken, oldRefreshToken }) => {
-      if (!oldRefreshToken) { return }
-
-      // TODO:  Will likely have to tinker with config file location for prod
-      const currentConfig = readFileSync('.env'),
-        updatedConfig = currentConfig.toString()
-          .replace(oldRefreshToken, newRefreshToken)
-
-      writeFileSync('.env', updatedConfig)
-    }
+    async ({ newRefreshToken}) => { config.set('token', newRefreshToken) }
   )
 
   if (cameras.length == 0) {
     console.log('No cameras found')
     return
   }
-
-  var desired_cameras = (process.env.USE_CAMERAS||'').split(',')
 
   for (var camera of cameras) {
     if (desired_cameras.indexOf(camera.name) < 0) {
@@ -66,7 +56,3 @@ async function main() {
   }
 }
 
-main().catch((e) => {
-  console.error(e)
-  process.exit(1)
-})
