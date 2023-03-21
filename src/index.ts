@@ -11,11 +11,9 @@ dayjs.extend(advancedFormat)
 
 import { stream } from './ring-streamer.js'
 
-console.log(process.env.LOG_FILE)
-
 export var logger : pino.Logger
 
-const version = process.env.npm_package_version as string
+const version = process.env.npm_package_versio as string || "undefined"
 const program = new Command()
 const config = new Conf({projectName: 'ring-server'})
 
